@@ -3,9 +3,6 @@ weight: 20
 title: Selectors
 ---
 
-
-<!-- They are placed here because selectors may be used in multiple places and not only in rules -->
-
 Any ID can be selected by using either of the following two selectors:
 - Relative selection via `+` or `-`
 - Absolute selection via the ID itself
@@ -62,12 +59,57 @@ Workspaces can be referenced by:
 
 ### Workspace filters
 
-<!-- TODO: i think we should make a petition to rework this for Lua -->
+Workspaces that have already been created can be targeted by a predicate or a filter.
+They both can *only* target workspaces that already exist.
+Trying to apply rules, e.g. `persistent`, to nonexistent workspaces will fail.
 
-> [!NOTE]
-> [Workspace rules](../core/rules/workspace-rules) can take a [predicate](../core#predicates) instead, which is a plain Lua function and is easier to read and write.
+#### Predicates
 
-Workspaces that have already been created can be targeted by workspace filters (e.g., `r[2-4] w[t1]`)
+Predicate is a function that tests if the condition is `true` or `false`.
+The function _must_ return `true` or `false`.
+
+<!-- TODO:
+I personally think it is questionable to even have those, so just a comment for now.
+Depends on the answer here: https://github.com/hyprwm/Hyprland/pull/16672
+
+If resolved into using already existing functions, they should be tipped here or smth like that.
+
+Workspace object has a few methods that works as predicates:
+
+| Method | Description |
+| --- | --- |
+| `count_windows({ pinned?, tiled?, visible? })` | Lorem impsum sit amet |
+| `count_groups({ pinned?, tiled?, visible? })`` | Lorem impsum sit amet |
+-->
+
+{{% details title="Examples" closed="true" %}}
+
+```lua
+-- No gaps when a normal workspace has a single tiled window
+hl.workspace_rule                           ({;
+    workspace = function(ws)                ;
+        return                              {true
+                and not ws.special
+                and ws:count_windows        ({;
+                    tiled = true            ;
+                    visible = true          })
+                == 1                        };
+    end                                     ;
+    gaps_out = 0                            ;
+    gaps_in = 0                             });
+
+-- Smaller gaps on the internal screen
+hl.workspace_rule({
+    workspace = function(ws)
+        return ws.monitor.name == "eDP-1"
+    end,
+    gaps_out = 5,
+})
+```
+
+{{% /details %}}
+
+#### Filters
 
 A filter is a sequence of filter expressions separated by spaces.
 No spaces are allowed inside expressions themselves.
@@ -93,10 +135,6 @@ No spaces are allowed inside expressions themselves.
   `1`: maximized,
   `2`: fullscreen without sending fullscreen state to the window.
   Only matches workspaces with covering fullscreen windows.
-
-> [!NOTE]
-> Filters can *only* target workspaces that already exist.
-> Trying to apply rules (for example `persistent`) to nonexistent workspaces will fail.
 
 ### Workspace query
 
